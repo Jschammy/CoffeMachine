@@ -1,5 +1,3 @@
-import time
-
 MENU = {
     "espresso": {
         "ingredients": {
@@ -26,56 +24,63 @@ MENU = {
     }
 }
 
-profit = 0
-resources = {
+PROFIT = 0
+RESOURCES = {
     "water": 1200,
     "milk": 1200,
     "coffee": 1200,
 }
 
 
-MACHINE_ON = True
-drink = ""
+machine_on = True
+menu_item = ""
 
-def check_money(menu_item, money):
+
+def process_payment():
+    """"Checks user payment against cost of beverage. Returns True if True, False if False."""
     price = MENU[menu_item]["cost"]
     print(f"Item price: ${price}")
-    payment = 0
-    payment += int(input("Please insert your quarters: ")) * 0.25
-    payment += int(input("Please insert your dimes: ")) * 0.10
-    payment += int(input("Please insert your nickels: ")) * 0.05
-    payment += int(input("Please insert your pennies: ")) * 0.01
-    if payment >= price:
-        change = payment - price
-        money += payment - change
-        print("Payment successful...")
-        time.sleep(2)
-        return money
+    user_payment = 0
+    user_payment += int(input("Please insert your quarters: ")) * 0.25
+    user_payment += int(input("Please insert your dimes: ")) * 0.10
+    user_payment += int(input("Please insert your nickels: ")) * 0.05
+    user_payment += int(input("Please insert your pennies: ")) * 0.01
+    user_payment = round(user_payment, 2)
+    if user_payment >= price:
+        print("Payment successful!")
+        change = round(user_payment - price, 2)
+        print(f"Your change is {change}")
+        global PROFIT
+        PROFIT += price
+        return True
     else:
-        print("Insufficient funds...")
-        time.sleep(2)
+        print("Insufficient funds!")
 
 
+def check_resources():
+    """"Checks user drink choice ingredients against resources in coffee machine."""
+    global RESOURCES
+    ingredients = MENU[menu_item]["ingredients"]
+    for ingredient in ingredients:
+        if ingredients[ingredient] > RESOURCES[ingredient]:
+            print(f"Insufficient resources: {ingredient}. Notify technician.")
+            return False
+        RESOURCES[ingredient] -= ingredients[ingredient]
+    return True
 
 
-#def check_resources():
+while machine_on:
 
+    user_input = input("Select a menu item (espresso, latte, cappuccino): ").lower()
 
-def check_menu(menu_item):
-    global MACHINE_ON
-    menu_item = input("Select a menu item (espresso, latte, cappuccino): ").lower()
-
-    if menu_item == "report":
-        print(f"Total Profit: ${profit}")
-    elif menu_item == "off":
-        MACHINE_ON = False
-    elif menu_item not in MENU.keys():
+    if user_input == "report":
+        print(f"Total Profit: ${PROFIT}")
+        print(RESOURCES)
+    elif user_input == "off":
+        machine_on = False
+    elif user_input not in MENU.keys():
         print("Item not on menu. Please try again.")
-        time.sleep(2)
     else:
-        return menu_item
-
-
-while MACHINE_ON:
-    drink = check_menu(drink)
-    check_money(drink, profit)
+        menu_item = user_input
+        if check_resources():
+            process_payment()
